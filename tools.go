@@ -20,6 +20,7 @@ import (
 
 	"net"
 	"net/http"
+	"net/textproto"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -776,6 +777,10 @@ func NewHeadersWithH1(orderHeaders []string, rawHeaders http.Header) [][2]string
 	writeHeaders := [][2]string{}
 	filterKey := make(map[string]struct{})
 	for _, key := range orderHeaders {
+		key = textproto.CanonicalMIMEHeaderKey(key)
+		if _, ok := filterKey[key]; ok {
+			continue
+		}
 		if rawV, ok := rawHeaders[key]; ok && len(rawV) > 0 {
 			filterKey[key] = struct{}{}
 			for _, v := range rawV {
@@ -800,6 +805,9 @@ func NewHeadersWithH2(orderHeaders []string, gospiderHeaders [][2]string) [][2]s
 	filterKey := make(map[string]struct{})
 	for _, key := range orderHeaders {
 		key := strings.ToLower(key)
+		if _, ok := filterKey[key]; ok {
+			continue
+		}
 		for _, vvs := range gospiderHeaders {
 			if vvs[0] == key {
 				filterKey[key] = struct{}{}
